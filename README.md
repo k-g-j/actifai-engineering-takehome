@@ -41,3 +41,100 @@ your browser. You should see a "Hello World" message.
 ## Help
 
 If you have any questions, feel free to reach out to your interview scheduler for clarification!
+
+## API Endpoints
+
+All endpoints return JSON with a consistent `{ success, data, meta }` structure.
+
+### `GET /api/sales/timeseries`
+Time series sales data aggregated by configurable time periods.
+
+**Query Parameters:**
+- `granularity`: `day` | `week` | `month` | `quarter` | `year` (default: `month`)
+- `start_date`, `end_date`: Date range filter (YYYY-MM-DD)
+- `user_id`: Filter by user
+- `group_id`: Filter by group
+
+**Returns:** `period`, `total_revenue`, `average_revenue`, `sale_count`, `min_sale`, `max_sale`
+
+### `GET /api/sales/users`
+Performance metrics aggregated by user.
+
+**Query Parameters:**
+- `start_date`, `end_date`: Date range filter (YYYY-MM-DD)
+- `user_id`: Filter to specific user
+- `limit`, `offset`: Pagination (limit: 1-100)
+
+**Returns:** `user_id`, `user_name`, `role`, `total_revenue`, `average_revenue`, `sale_count`, `min_sale`, `max_sale`
+
+### `GET /api/sales/groups`
+Performance metrics aggregated by group.
+
+**Query Parameters:**
+- `start_date`, `end_date`: Date range filter (YYYY-MM-DD)
+- `group_id`: Filter to specific group
+
+**Returns:** `group_id`, `group_name`, `total_revenue`, `average_revenue`, `sale_count`, `user_count`, `min_sale`, `max_sale`
+
+### `GET /api/sales/leaderboard`
+Ranked list of top performers by total revenue.
+
+**Query Parameters:**
+- `start_date`, `end_date`: Date range filter (YYYY-MM-DD)
+- `limit`: Number of results (default: 10, max: 100)
+
+**Returns:** `rank`, `user_id`, `user_name`, `role`, `total_revenue`, `sale_count`
+
+### `GET /api/sales/summary`
+Overall sales statistics for the specified period.
+
+**Query Parameters:**
+- `start_date`, `end_date`: Date range filter (YYYY-MM-DD)
+
+**Returns:** `total_revenue`, `total_sales`, `average_sale`, `min_sale`, `max_sale`, `unique_sellers`, `date_range`
+
+### `GET /api/sales/compare`
+Compare metrics between two time periods with percentage changes.
+
+**Query Parameters (all required):**
+- `current_start`, `current_end`: Current period range
+- `previous_start`, `previous_end`: Previous period range
+
+**Returns:** `current` and `previous` period metrics, plus `change` with `revenue_change`, `revenue_change_pct`, `count_change`, `count_change_pct`
+
+## Running Tests
+
+```bash
+npm test              # Run unit tests
+npm run test:coverage # Run tests with coverage report
+```
+
+## Design Decisions
+
+**TypeScript**: Converted from JavaScript to TypeScript with strict mode for compile-time type safety and improved maintainability.
+
+**Project Structure**: Separated concerns into `types/`, `constants/`, `utils/`, `db/`, and `routes/` directories for clear organization.
+
+**Security**:
+- Parameterized SQL queries to prevent injection attacks
+- Input validation on all query parameters
+- Helmet middleware for security headers
+- Rate limiting (100 requests/15 minutes)
+
+**Performance**:
+- Database-level aggregations (SUM, AVG, COUNT) instead of application-level loops
+- Connection pooling with configured limits and timeouts
+
+**API Design**:
+- Consistent `{ success, data, meta }` response structure
+- Specific error codes for debugging
+- Flexible filtering and pagination options
+
+## Future Enhancements
+
+- **Caching**: Redis layer for frequently accessed data (leaderboards, summaries)
+- **Real-Time**: WebSocket support for live dashboard updates
+- **Analytics**: Trend analysis, forecasting, goal tracking, percentile rankings
+- **Filtering**: Role-based filtering, multi-select, date presets
+- **Auth**: JWT authentication with role-based access control
+- **Export**: CSV/Excel export endpoints
